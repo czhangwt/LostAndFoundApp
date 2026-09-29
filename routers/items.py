@@ -1,7 +1,7 @@
 import os
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -58,6 +58,41 @@ def list_items(
 
     items = query.order_by(Item.created_at.desc()).all()
     return items
+
+
+@router.get("/search", response_model=List[ItemResponse])
+@router.get("/search/", response_model=List[ItemResponse], include_in_schema=False)
+def search_items(
+    q: Optional[str] = Query(None, description="Keyword search in title and description"),
+    item_type: Optional[str] = Query(None, description="Filter by lost or found"),
+    location: Optional[str] = Query(None, description="Filter by campus location"),
+    is_resolved: Optional[bool] = Query(None, description="Filter by resolution status"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Item).filter(Item.status == "approved")
+
+    if q and q.strip():
+        search_term = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Item.title.ilike(search_term),
+                Item.description.ilike(search_term),
+            )
+        )
+
+    if item_type and item_type.lower() in ["lost", "found"]:
+        query = query.filter(Item.item_type == item_type.lower())
+
+    if location and location.strip():
+        query = query.filter(Item.campus_location.ilike(f"%{location.strip()}%"))
+
+    if is_resolved is not None:
+        query = query.filter(Item.is_resolved == is_resolved)
+    else:
+        # Default behavior: show unresolved items first or all active items
+        pass
+
+    return query.order_by(Item.created_at.desc()).all()
 
 
 @router.get("/{item_id}", response_model=ItemResponse)
@@ -186,4 +221,3 @@ async def upload_photo(
     db.commit()
     db.refresh(photo)
     return photo
-

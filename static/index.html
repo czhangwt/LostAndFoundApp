@@ -265,6 +265,82 @@
         </div>
       </div>
 
+      <!-- Search & Filter Toolbar (FR-5 / Step 05) -->
+      <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+          <!-- Search Input -->
+          <div class="lg:col-span-5 relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              id="search-keyword"
+              type="text"
+              placeholder="Search by keyword (title, description)..."
+              class="w-full pl-10 pr-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <!-- Item Type Selector -->
+          <div class="lg:col-span-2">
+            <select
+              id="filter-type"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Types</option>
+              <option value="lost">Lost Items</option>
+              <option value="found">Found Items</option>
+            </select>
+          </div>
+
+          <!-- Campus Location Filter -->
+          <div class="lg:col-span-3">
+            <select
+              id="filter-location"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Locations</option>
+              <option value="Library">Library</option>
+              <option value="Student Center">Student Center</option>
+              <option value="Engineering Hall">Engineering Hall</option>
+              <option value="Dining Commons">Dining Commons</option>
+              <option value="Gym / Recreation">Gym / Recreation</option>
+            </select>
+          </div>
+
+          <!-- Reset Button -->
+          <div class="lg:col-span-2">
+            <button
+              id="btn-reset-filters"
+              type="button"
+              onclick="resetFilters()"
+              class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition text-center"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Resolution Toggle -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
+          <label class="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer select-none">
+            <input type="checkbox" id="filter-include-resolved" class="rounded text-indigo-600 focus:ring-indigo-500" />
+            <span>Include Resolved</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Empty State Container (FR-5 / Step 05) -->
+      <div id="empty-state" class="hidden text-center py-12 bg-white border border-dashed border-slate-300 rounded-xl p-8">
+        <div class="w-14 h-14 mx-auto mb-3 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-2xl font-bold">
+          🔍
+        </div>
+        <p class="text-xl font-medium text-gray-600">No items match your search criteria.</p>
+        <p class="text-sm text-gray-400 mt-1">Try adjusting your keywords or clearing selected filters.</p>
+      </div>
+
       <!-- Loading State -->
       <div id="items-loading" class="text-center py-12 text-slate-400">
         <svg class="animate-spin h-8 w-8 mx-auto text-indigo-600 mb-2" fill="none" viewBox="0 0 24 24">

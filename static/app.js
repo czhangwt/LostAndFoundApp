@@ -1,4 +1,4 @@
-// Campus Lost & Found - Frontend Client Logic (Step 04: Admin Moderation System & Records)
+// Campus Lost & Found - Frontend Client Logic (Step 05: Dedicated Search & Multi-Filter Engine)
 
 const API_BASE = "";
 let currentItems = [];
@@ -286,10 +286,123 @@ async function fetchItems() {
   }
 }
 
+// --- SEARCH & FILTER LOGIC (FR-5 / Step 05) ---
+
+let searchDebounceTimer = null;
+
+async function executeSearch() {
+  const keywordInput = document.getElementById("search-keyword");
+  const typeSelect = document.getElementById("filter-type");
+  const locationSelect = document.getElementById("filter-location");
+  const resolvedCheckbox = document.getElementById("filter-include-resolved");
+
+  const emptyStateEl = document.getElementById("empty-state");
+  const itemsEmptyEl = document.getElementById("items-empty");
+  const feedEl = document.getElementById("items-feed");
+  const loadingEl = document.getElementById("items-loading");
+
+  const keyword = keywordInput ? keywordInput.value.trim() : "";
+  const type = typeSelect ? typeSelect.value : "";
+  const location = locationSelect ? locationSelect.value : "";
+  const includeResolved = resolvedCheckbox ? resolvedCheckbox.checked : false;
+
+  const params = new URLSearchParams();
+  if (keyword) params.append("q", keyword);
+  if (type) params.append("item_type", type);
+  if (location) params.append("location", location);
+  if (!includeResolved) params.append("is_resolved", "false");
+
+  if (loadingEl) loadingEl.classList.remove("hidden");
+  if (emptyStateEl) emptyStateEl.classList.add("hidden");
+  if (itemsEmptyEl) itemsEmptyEl.classList.add("hidden");
+
+  try {
+    const res = await fetch(`${API_BASE}/items/search?${params.toString()}`);
+    if (!res.ok) {
+      throw new Error(`Search failed: HTTP ${res.status}`);
+    }
+    const results = await res.json();
+    currentItems = results;
+
+    if (!results || results.length === 0) {
+      if (feedEl) feedEl.innerHTML = "";
+      if (emptyStateEl) emptyStateEl.classList.remove("hidden");
+      if (itemsEmptyEl) itemsEmptyEl.classList.add("hidden");
+    } else {
+      if (emptyStateEl) emptyStateEl.classList.add("hidden");
+      if (itemsEmptyEl) itemsEmptyEl.classList.add("hidden");
+      renderItems(results);
+    }
+  } catch (err) {
+    console.error("executeSearch error:", err);
+    showBanner(`Search error: ${err.message}`, "error");
+  } finally {
+    if (loadingEl) loadingEl.classList.add("hidden");
+  }
+}
+
+function resetFilters() {
+  const keywordInput = document.getElementById("search-keyword");
+  const typeSelect = document.getElementById("filter-type");
+  const locationSelect = document.getElementById("filter-location");
+  const resolvedCheckbox = document.getElementById("filter-include-resolved");
+
+  if (keywordInput) keywordInput.value = "";
+  if (typeSelect) typeSelect.value = "";
+  if (locationSelect) locationSelect.value = "";
+  if (resolvedCheckbox) resolvedCheckbox.checked = false;
+
+  executeSearch();
+}
+
+function initSearchAndFilters() {
+  const keywordInput = document.getElementById("search-keyword");
+  const typeSelect = document.getElementById("filter-type");
+  const locationSelect = document.getElementById("filter-location");
+  const resolvedCheckbox = document.getElementById("filter-include-resolved");
+  const resetBtn = document.getElementById("btn-reset-filters");
+
+  if (keywordInput) {
+    keywordInput.addEventListener("input", () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+      searchDebounceTimer = setTimeout(() => {
+        executeSearch();
+      }, 300);
+    });
+  }
+
+  if (typeSelect) {
+    typeSelect.addEventListener("change", () => {
+      executeSearch();
+    });
+  }
+
+  if (locationSelect) {
+    locationSelect.addEventListener("change", () => {
+      executeSearch();
+    });
+  }
+
+  if (resolvedCheckbox) {
+    resolvedCheckbox.addEventListener("change", () => {
+      executeSearch();
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      resetFilters();
+    });
+  }
+}
+
 // Render item cards into #items-feed
 function renderItems(items) {
   const feedEl = document.getElementById("items-feed");
   const emptyEl = document.getElementById("items-empty");
+  const emptyStateEl = document.getElementById("empty-state");
   if (!feedEl) return;
 
   feedEl.innerHTML = "";
@@ -299,6 +412,7 @@ function renderItems(items) {
     return;
   }
   if (emptyEl) emptyEl.classList.add("hidden");
+  if (emptyStateEl) emptyStateEl.classList.add("hidden");
 
   // Determine current active user
   let activeUser = currentUser;
@@ -1307,5 +1421,6 @@ function closeHistoryModal() {
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", async () => {
   await checkSession();
+  initSearchAndFilters();
   await fetchItems();
 });

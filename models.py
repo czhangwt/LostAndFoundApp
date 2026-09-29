@@ -27,7 +27,7 @@ class Item(Base):
     description = Column(Text, nullable=False)
     item_type = Column(String, nullable=False)  # 'lost' or 'found'
     campus_location = Column(String, nullable=False, index=True)
-    status = Column(String, default="pending", nullable=False)  # 'pending', 'approved', 'rejected'
+    status = Column(String, default="pending", nullable=False, index=True)  # 'pending', 'approved', 'rejected'
     is_resolved = Column(Boolean, default=False, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
@@ -62,5 +62,3 @@ class ModerationRecord(Base):
 
     item = relationship("Item", back_populates="moderation_records")
     admin = relationship("User")
-
-
